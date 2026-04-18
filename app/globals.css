@@ -11,5 +11,5 @@ html {
 }
 
 body {
-  @apply bg-surface text-on-surface antialiased;
+  @apply min-w-0 overflow-x-hidden bg-surface text-on-surface antialiased;
 }

@@ -14,8 +14,8 @@ export function CTABanner() {
           Join teams building trust into every model interaction with Verity.
         </p>
         <Link
-          href="#api-key"
-          className="mt-8 inline-flex rounded bg-gradient-to-r from-primary to-primary-container px-6 py-3 text-sm font-semibold text-on-primary shadow-ambient"
+          href="/sign-in"
+          className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded bg-gradient-to-r from-primary to-primary-container px-6 py-3 text-sm font-semibold text-on-primary shadow-ambient"
         >
           Get API key
         </Link>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import { AppProviders } from "./providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,6 +21,12 @@ export const metadata: Metadata = {
     "Cryptographically seal AI decisions, documents, and approvals to tamper-evident audit records.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

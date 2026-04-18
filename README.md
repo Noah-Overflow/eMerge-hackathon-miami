@@ -87,14 +87,42 @@ The enterprise's files **never leave their infrastructure**. Verity receives onl
 
 ## Running locally
 
-> Full setup guide coming as the project builds out during the hackathon.
-
 ```bash
 git clone https://github.com/noahnaizir/eMerge-hackathon-miami
 cd eMerge-hackathon-miami
 npm install
+npx convex dev
+```
+
+In a second terminal:
+
+```bash
 npm run dev
 ```
+
+### Environment variables
+
+**Next.js (`.env.local`, often created by `npx convex dev`)**
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_CONVEX_URL` | Convex deployment URL for `ConvexReactClient` |
+| `NEXT_PUBLIC_CONVEX_SITE_URL` | Site URL (optional; used by Convex tooling) |
+
+**Convex deployment (Dashboard → Settings → Environment variables, or `npx convex env set` for single-line values)**
+
+| Variable | Purpose |
+|----------|---------|
+| `JWT_PRIVATE_KEY` | PEM PKCS#8 **private** key for RS256 session JWTs (must match the public key wired in `convex/auth.config.ts`; multiline PEM is easiest to paste in the dashboard) |
+| `WEBAUTHN_RP_ID` | Relying party ID (default `localhost`) |
+| `WEBAUTHN_ORIGIN` | Expected WebAuthn origin (default `http://localhost:3000`) |
+| `SIGNER_SECRET` | Shared secret for `POST /finalizeSeal` (header `x-verity-signer-secret`) so your Flow signer can mark rows sealed |
+
+**Signer → Convex HTTP**
+
+After deploy, call your Convex HTTP action URL (see [HTTP actions](https://docs.convex.dev/functions/http-actions)) with JSON body:
+
+`{ "orgId": "<organizations id>", "kind": "document" | "inference", "verityDocId"?: "...", "receiptId"?: "...", "flowTxId": "...", "status": "sealed" | "failed", "error"?: "..." }`
 
 ---
 

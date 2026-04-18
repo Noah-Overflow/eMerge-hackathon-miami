@@ -53,14 +53,14 @@ export function Pricing() {
       <p className="mx-auto mt-3 max-w-xl text-center text-sm text-on-surface-variant">
         Simple, usage-based sealing with enterprise-ready controls.
       </p>
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+      <div className="mt-10 grid gap-6 pt-2 sm:pt-0 lg:grid-cols-3">
         {tiers.map((tier) => (
           <article
             key={tier.name}
-            className={`relative flex flex-col rounded-lg p-6 sm:p-8 ${
+            className={`relative flex flex-col rounded-lg sm:p-8 ${
               tier.highlight
-                ? "bg-gradient-to-br from-primary to-primary-container text-on-primary ring-2 ring-primary-container shadow-ambient"
-                : "bg-surface-container-lowest shadow-ambient"
+                ? "bg-gradient-to-br from-primary to-primary-container p-6 pb-8 pt-10 text-on-primary ring-2 ring-primary-container shadow-ambient sm:pt-10"
+                : "bg-surface-container-lowest p-6 shadow-ambient sm:p-8"
             }`}
           >
             {tier.highlight && (

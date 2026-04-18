@@ -28,7 +28,7 @@ export function IntegrationGuide() {
           Set up Verity in your AI pipeline in under 30 minutes. REST only — no
           client-side blockchain work required.
         </p>
-        <ol className="mt-8 flex gap-2 overflow-x-auto pb-2 lg:hidden">
+        <ol className="mt-8 flex gap-2 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] lg:hidden">
           {steps.map((label, i) => (
             <li
               key={label}
@@ -38,16 +38,15 @@ export function IntegrationGuide() {
             </li>
           ))}
         </ol>
-        <div className="mt-10 grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
-          <aside className="hidden lg:block">
-            <div className="sticky top-24">
+        <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
+          <aside className="min-w-0 lg:order-first">
+            <div className="lg:sticky lg:top-24">
               <DocsSidebar />
             </div>
           </aside>
-          <GuideSections />
-        </div>
-        <div className="mt-10 lg:hidden">
-          <DocsSidebar />
+          <div className="min-w-0">
+            <GuideSections />
+          </div>
         </div>
       </div>
     </div>
