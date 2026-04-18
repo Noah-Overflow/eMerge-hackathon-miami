@@ -32,6 +32,9 @@ export function WorkspaceDashboardActivityPanel({ rows }: Props) {
                   <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline sm:px-6 sm:py-4">
                     Status
                   </th>
+                  <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-outline sm:px-6 sm:py-4">
+                    Chain
+                  </th>
                   <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-outline sm:px-6 sm:py-4">
                     Timestamp
                   </th>
@@ -45,6 +48,20 @@ export function WorkspaceDashboardActivityPanel({ rows }: Props) {
                       {r.entity}
                     </td>
                     <td className="px-4 py-3 sm:px-6 sm:py-4">{statusPill(r.status)}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4">
+                      {r.flowTxId && r.flowTxId !== "0xdemo" ? (
+                        <a
+                          href={`https://www.flowscan.io/tx/${r.flowTxId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-bold text-primary hover:bg-primary/20"
+                        >
+                          Flowscan ↗
+                        </a>
+                      ) : (
+                        <span className="text-[10px] text-outline">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right font-mono text-xs text-outline sm:px-6 sm:py-4">
                       {fmt(r.at)}
                     </td>
@@ -52,7 +69,7 @@ export function WorkspaceDashboardActivityPanel({ rows }: Props) {
                 ))}
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-sm text-on-surface-variant">
+                    <td colSpan={5} className="px-6 py-8 text-center text-sm text-on-surface-variant">
                       No activity yet. Create a demo receipt or seal from your pipeline.
                     </td>
                   </tr>

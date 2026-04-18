@@ -26,7 +26,7 @@ export function statusPill(status: string) {
   );
 }
 
-export type ActivityRow = { op: string; entity: string; status: string; at: number };
+export type ActivityRow = { op: string; entity: string; status: string; at: number; flowTxId?: string };
 
 export function buildActivityRows(
   receipts: Doc<"inferenceReceipts">[],
@@ -40,6 +40,7 @@ export function buildActivityRows(
       entity: r.receiptId,
       status: r.status,
       at: r.createdAt,
+      flowTxId: r.flowTxId,
     });
   }
   for (const d of docs) {

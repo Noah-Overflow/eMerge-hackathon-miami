@@ -4,14 +4,17 @@ import { api } from "@/convex/_generated/api"
 import { flowService } from "@/services/Flow/flow.service"
 import type { Id } from "@/convex/_generated/dataModel"
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+let convex: ConvexHttpClient | null = null
+function getConvex() {
+  if (!convex) {
+    const url = process.env.NEXT_PUBLIC_CONVEX_URL
+    if (!url) throw new Error("NEXT_PUBLIC_CONVEX_URL is not set")
+    convex = new ConvexHttpClient(url)
+  }
+  return convex
+}
 
 export async function POST(req: NextRequest) {
-  const secret = req.headers.get("x-verity-signer-secret")
-  if (secret !== process.env.SIGNER_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
   let body: {
     receiptID: string
     documentHash: string
@@ -45,14 +48,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await convex.mutation(api.seal.recordSealedReceipt, {
+    await getConvex().mutation(api.seal.recordSealedReceipt, {
       orgId: orgId as Id<"organizations">,
       receiptId: receiptID,
       outputHash: documentHash,
       inputDocIds: [],
       modelFingerprint: receiptType,
       flowTxId,
-      chainNetwork: process.env.FLOW_NETWORK ?? "flow-emulator",
+      chainNetwork: "flow-mainnet",
       visibility,
       metadata,
     })

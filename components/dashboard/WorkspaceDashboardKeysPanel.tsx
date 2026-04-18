@@ -50,7 +50,7 @@ export function WorkspaceDashboardKeysPanel({
           onClick={() => void onSeedDemo()}
           className="rounded-lg border border-outline-variant/40 px-4 py-2 text-xs font-semibold text-on-surface disabled:opacity-50"
         >
-          Demo receipt
+          Anchor demo to Flow ↗
         </button>
       </div>
       {plaintextKey ? (

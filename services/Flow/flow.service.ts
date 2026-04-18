@@ -1,8 +1,8 @@
 import scripts from "./scripts"
 
 const BLOCKCHAIN_API_URL = process.env.BLOCKCHAIN_API_URL!
-const FLOW_ACCOUNT_ADDRESS = process.env.FLOW_ACCOUNT_ADDRESS!
-const FLOW_CONTRACT_ADDRESS = process.env.FLOW_CONTRACT_ADDRESS!
+const FLOW_ACCOUNT_ADDRESS = "0x0e964e9e2b53ed06"
+const FLOW_CONTRACT_ADDRESS = "0x0e964e9e2b53ed06"
 
 export interface FlowReceipt {
   receiptID: string

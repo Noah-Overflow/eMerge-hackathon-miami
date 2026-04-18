@@ -1,0 +1,2 @@
+{"sessionId":"076d45","hypothesisId":"H-A","location":"test-flow.mjs:CONTRACT_ADDRESS","message":"resolved contract address","data":{"CONTRACT_ADDRESS":"0x0e964e9e2b53ed06","env_set":true},"timestamp":1776548405387}
+{"sessionId":"076d45","hypothesisId":"H-C","location":"test-flow.mjs:tx_body","message":"cadence import line check","data":{"importLine":"import VerityReceipts from 0x0e964e9e2b53ed06","account":"0x0e964e9e2b53ed06"},"timestamp":1776548405405}

@@ -24,7 +24,6 @@ export default function DashboardPage() {
   const usageDaily = useQuery(api.dashboard.getUsageDaily, authArgs);
   const createKey = useMutation(api.apiKeys.createApiKey);
   const revokeKey = useMutation(api.apiKeys.revokeApiKey);
-  const seedDemo = useMutation(api.receipts.createDemoInferenceReceipt);
   const [newKeyName, setNewKeyName] = useState("Default");
   const [plaintextKey, setPlaintextKey] = useState<string | null>(null);
   const [busy, setBusy] = useState("");
@@ -52,9 +51,24 @@ export default function DashboardPage() {
 
   async function onSeedDemo() {
     if (!typedOrgId) return;
-    setBusy("Creating demo receipt…");
+    setBusy("Anchoring to Flow…");
     try {
-      await seedDemo({ orgId: typedOrgId });
+      const res = await fetch("/api/seal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          receiptID: `demo-${crypto.randomUUID().slice(0, 8)}`,
+          documentHash: `sha256:${crypto.randomUUID().replace(/-/g, "")}`,
+          receiptType: "inference",
+          metadata: { model: "gpt-4o", source: "verity-demo" },
+          orgId: typedOrgId,
+          visibility: "public",
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        alert(`Flow anchor failed: ${err.error}`);
+      }
     } finally {
       setBusy("");
     }

@@ -13,7 +13,7 @@ import {
 
 const SESSION_KEY = "verity_session";
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
-const convex = new ConvexReactClient(convexUrl);
+const convex = convexUrl ? new ConvexReactClient(convexUrl) : new ConvexReactClient("https://placeholder.convex.cloud");
 
 type Session = { userId: string; orgId: string };
 
