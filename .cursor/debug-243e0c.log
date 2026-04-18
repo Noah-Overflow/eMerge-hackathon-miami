@@ -1,3 +1,5 @@
 {"sessionId":"243e0c","hypothesisId":"NEW-FLOW","location":"sign-in:login:start","message":"HTTP login start","data":{},"timestamp":1776541084079}
 {"sessionId":"243e0c","hypothesisId":"NEW-FLOW","location":"sign-in:login:error","message":"[Request ID: 722343dd86fd3630] Server Error\nUncaught Error: Unknown credential\n    at handler (../convex/passkey.ts:119:","data":{},"timestamp":1776541089444}
 {"sessionId":"243e0c","hypothesisId":"NEW-FLOW","location":"app/providers.tsx:setSession","message":"Session set after passkey","data":{"hasUserId":true,"hasOrgId":true},"timestamp":1776541192359}
+{"sessionId":"243e0c","hypothesisId":"NEW-FLOW","location":"app/providers.tsx:hydrate","message":"Session restored from localStorage","data":{"hasUserId":true,"hasOrgId":true},"timestamp":1776543494630}
+{"sessionId":"243e0c","hypothesisId":"NEW-FLOW","location":"app/providers.tsx:hydrate","message":"Session restored from localStorage","data":{"hasUserId":true,"hasOrgId":true},"timestamp":1776543494631}

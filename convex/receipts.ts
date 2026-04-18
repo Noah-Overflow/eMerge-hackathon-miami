@@ -10,7 +10,7 @@ export const getReceiptById = query({
       .withIndex("by_receiptId", (q) => q.eq("receiptId", receiptId))
       .unique();
     if (!row) {
-      return { found: false as const };
+      return { found: false as const, reason: "not_found" as const };
     }
     if (row.visibility === "public") {
       return {
@@ -26,9 +26,9 @@ export const getReceiptById = query({
         createdAt: row.createdAt,
       };
     }
-    // Private receipts are not accessible without an orgId — return not-found
+    // Org-only receipt: caller is not in issuing workspace (or not signed in)
     if (row.orgId !== orgId) {
-      return { found: false as const };
+      return { found: false as const, reason: "org_only" as const };
     }
     return {
       found: true as const,
