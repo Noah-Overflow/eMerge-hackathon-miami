@@ -1,4 +1,4 @@
-import { internalMutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
 export const finalizeSeal = internalMutation({
   args: {
@@ -68,6 +68,37 @@ export const createPendingDocument = internalMutation({
       status: "pending",
       chainNetwork: args.chainNetwork,
       createdAt: Date.now(),
+    });
+  },
+});
+
+export const recordSealedReceipt = mutation({
+  args: {
+    orgId: v.id("organizations"),
+    receiptId: v.string(),
+    outputHash: v.string(),
+    inputDocIds: v.array(v.string()),
+    modelFingerprint: v.string(),
+    flowTxId: v.string(),
+    chainNetwork: v.string(),
+    visibility: v.union(v.literal("org"), v.literal("public")),
+    metadata: v.optional(v.any()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db.insert("inferenceReceipts", {
+      orgId: args.orgId,
+      receiptId: args.receiptId,
+      outputHash: args.outputHash,
+      inputDocIds: args.inputDocIds,
+      modelFingerprint: args.modelFingerprint,
+      flowTxId: args.flowTxId,
+      chainNetwork: args.chainNetwork,
+      visibility: args.visibility,
+      metadata: args.metadata,
+      status: "sealed",
+      sealedAt: now,
+      createdAt: now,
     });
   },
 });
