@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  ConvexProviderWithAuth,
-  ConvexReactClient,
-} from "convex/react";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
 import {
   createContext,
   useCallback,
@@ -14,13 +11,17 @@ import {
   type ReactNode,
 } from "react";
 
-const SESSION_KEY = "verity_convex_token";
-
+const SESSION_KEY = "verity_session";
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
 const convex = new ConvexReactClient(convexUrl);
 
+type Session = { userId: string; orgId: string };
+
 type SessionApi = {
-  setSessionToken: (token: string | null) => void;
+  userId: string | null;
+  orgId: string | null;
+  setSession: (s: Session) => void;
+  clearSession: () => void;
 };
 
 const SessionContext = createContext<SessionApi | null>(null);
@@ -34,77 +35,59 @@ export function useVeritySession() {
 }
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
+  const [session, setSessionState] = useState<Session | null>(null);
 
   useEffect(() => {
-    let hadStoredSession = false;
     try {
-      const stored = sessionStorage.getItem(SESSION_KEY);
-      if (stored) {
-        setToken(stored);
-        hadStoredSession = true;
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Session;
+        if (parsed.userId && parsed.orgId) {
+          setSessionState(parsed);
+          // #region agent log
+          fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
+            body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "app/providers.tsx:hydrate", message: "Session restored from localStorage", data: { hasUserId: !!parsed.userId, hasOrgId: !!parsed.orgId }, timestamp: Date.now() }),
+          }).catch(() => {});
+          // #endregion
+        }
       }
-    } catch {
-      /* sessionStorage unavailable */
-    }
-    setReady(true);
+    } catch { /* localStorage unavailable */ }
+  }, []);
+
+  const setSession = useCallback((s: Session) => {
+    setSessionState(s);
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* */ }
     // #region agent log
-    {
-      let convexHost = "empty-url";
-      try {
-        if (convexUrl) convexHost = new URL(convexUrl).hostname;
-      } catch {
-        convexHost = "invalid-url";
-      }
-      fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "243e0c",
-        },
-        body: JSON.stringify({
-          sessionId: "243e0c",
-          hypothesisId: "H2",
-          location: "app/providers.tsx:hydrate",
-          message: "Convex client URL host after session hydrate",
-          data: { convexHost, hadStoredSession },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-    }
+    fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
+      body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "app/providers.tsx:setSession", message: "Session set after passkey", data: { hasUserId: !!s.userId, hasOrgId: !!s.orgId }, timestamp: Date.now() }),
+    }).catch(() => {});
     // #endregion
   }, []);
 
-  const setSessionToken = useCallback((next: string | null) => {
-    setToken(next);
-    try {
-      if (next) sessionStorage.setItem(SESSION_KEY, next);
-      else sessionStorage.removeItem(SESSION_KEY);
-    } catch {
-      /* */
-    }
+  const clearSession = useCallback(() => {
+    setSessionState(null);
+    try { localStorage.removeItem(SESSION_KEY); } catch { /* */ }
   }, []);
 
-  const useAuth = useCallback(
+  const api = useMemo(
     () => ({
-      isLoading: !ready,
-      isAuthenticated: !!token,
-      fetchAccessToken: async () => token,
+      userId: session?.userId ?? null,
+      orgId: session?.orgId ?? null,
+      setSession,
+      clearSession,
     }),
-    [ready, token],
-  );
-
-  const session = useMemo(
-    () => ({ setSessionToken }),
-    [setSessionToken],
+    [session, setSession, clearSession],
   );
 
   return (
-    <SessionContext.Provider value={session}>
-      <ConvexProviderWithAuth client={convex} useAuth={useAuth}>
+    <SessionContext.Provider value={api}>
+      <ConvexProvider client={convex}>
         {children}
-      </ConvexProviderWithAuth>
+      </ConvexProvider>
     </SessionContext.Provider>
   );
 }

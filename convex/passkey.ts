@@ -6,32 +6,10 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
-import { SignJWT, importPKCS8 } from "jose";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-
-const issuer = "https://verity.convex.auth";
-const audience = "verity-app";
-
-async function mintSessionToken(userId: string, orgId: string) {
-  const pem = process.env.JWT_PRIVATE_KEY;
-  if (!pem) {
-    throw new Error(
-      "JWT_PRIVATE_KEY missing: set it with `npx convex env set JWT_PRIVATE_KEY` (paste PEM including headers)",
-    );
-  }
-  const key = await importPKCS8(pem, "RS256");
-  return await new SignJWT({ orgId })
-    .setProtectedHeader({ alg: "RS256", kid: "verity-dev-1", typ: "JWT" })
-    .setSubject(userId)
-    .setIssuer(issuer)
-    .setAudience(audience)
-    .setIssuedAt()
-    .setExpirationTime("2h")
-    .sign(key);
-}
 
 function rpId() {
   return process.env.WEBAUTHN_RP_ID ?? "localhost";
@@ -72,11 +50,7 @@ export const finishRegistration = action({
     response: v.any(),
     displayName: v.optional(v.string()),
   },
-  handler: async (ctx, args): Promise<{
-    token: string;
-    userId: string;
-    orgId: string;
-  }> => {
+  handler: async (ctx, args): Promise<{ userId: string; orgId: string }> => {
     const row = await ctx.runQuery(internal.internalAuth.getChallenge, {
       challengeId: args.challengeId,
     });
@@ -105,8 +79,7 @@ export const finishRegistration = action({
       },
     )) as { userId: Id<"users">; orgId: Id<"organizations"> };
     await ctx.runMutation(internal.internalAuth.deleteChallenge, { id: row._id });
-    const token = await mintSessionToken(userId, orgId);
-    return { token, userId, orgId };
+    return { userId: userId as string, orgId: orgId as string };
   },
 });
 
@@ -130,11 +103,7 @@ export const startAuthentication = action({
 
 export const finishAuthentication = action({
   args: { challengeId: v.string(), response: v.any() },
-  handler: async (ctx, args): Promise<{
-    token: string;
-    userId: string;
-    orgId: string;
-  }> => {
+  handler: async (ctx, args): Promise<{ userId: string; orgId: string }> => {
     const row = await ctx.runQuery(internal.internalAuth.getChallenge, {
       challengeId: args.challengeId,
     });
@@ -174,7 +143,6 @@ export const finishAuthentication = action({
       throw new Error("No organization for user");
     }
     await ctx.runMutation(internal.internalAuth.deleteChallenge, { id: row._id });
-    const token = await mintSessionToken(cred.userId, orgId);
-    return { token, userId: cred.userId, orgId };
+    return { userId: cred.userId as string, orgId: orgId as string };
   },
 });

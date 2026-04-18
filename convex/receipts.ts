@@ -1,11 +1,10 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { orgIdFromIdentity } from "./org";
 
 export const getReceiptById = query({
-  args: { receiptId: v.string() },
-  handler: async (ctx, { receiptId }) => {
+  args: { receiptId: v.string(), orgId: v.optional(v.id("organizations")) },
+  handler: async (ctx, { receiptId, orgId }) => {
     const row = await ctx.db
       .query("inferenceReceipts")
       .withIndex("by_receiptId", (q) => q.eq("receiptId", receiptId))
@@ -27,11 +26,7 @@ export const getReceiptById = query({
         createdAt: row.createdAt,
       };
     }
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return { found: false as const, private: true as const };
-    }
-    const orgId = orgIdFromIdentity(identity);
+    // Private receipts are not accessible without an orgId — return not-found
     if (row.orgId !== orgId) {
       return { found: false as const };
     }
@@ -51,11 +46,10 @@ export const getReceiptById = query({
 });
 
 export const createDemoInferenceReceipt = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-    const orgId = orgIdFromIdentity(identity);
+  args: {
+    orgId: v.id("organizations"),
+  },
+  handler: async (ctx, { orgId }) => {
     const receiptId = `rec_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
     await ctx.db.insert("inferenceReceipts", {
       orgId,

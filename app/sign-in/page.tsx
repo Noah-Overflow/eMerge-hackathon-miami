@@ -1,25 +1,20 @@
 "use client";
 
 import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
-import { useAction } from "convex/react";
+import { ConvexHttpClient } from "convex/browser";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { api } from "@/convex/_generated/api";
-import { withConvexActionTimeout } from "@/lib/convexActionTimeout";
 import { useVeritySession } from "../providers";
 
-const ACTION_TIMEOUT_MS = 14_000;
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
 
 export default function SignInPage() {
   const router = useRouter();
-  const { setSessionToken } = useVeritySession();
-  const startReg = useAction(api.passkey.startRegistration);
-  const finishReg = useAction(api.passkey.finishRegistration);
-  const startAuth = useAction(api.passkey.startAuthentication);
-  const finishAuth = useAction(api.passkey.finishAuthentication);
+  const { setSession } = useVeritySession();
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -31,74 +26,36 @@ export default function SignInPage() {
       // #region agent log
       fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "243e0c",
-        },
-        body: JSON.stringify({
-          sessionId: "243e0c",
-          hypothesisId: "H1",
-          location: "app/sign-in/page.tsx:register:start",
-          message: "Passkey register flow started (before Convex startRegistration)",
-          data: {},
-          timestamp: Date.now(),
-        }),
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
+        body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "sign-in:register:start", message: "HTTP register start", data: {}, timestamp: Date.now() }),
       }).catch(() => {});
       // #endregion
-      const { options, challengeId } = await withConvexActionTimeout(
-        startReg({
-          displayName: displayName.trim() || undefined,
-        }),
-        ACTION_TIMEOUT_MS,
+      const client = new ConvexHttpClient(convexUrl);
+      const { options, challengeId } = await client.action(
+        api.passkey.startRegistration,
+        { displayName: displayName.trim() || undefined },
+      );
+      const response = await startRegistration({ optionsJSON: options });
+      const { userId, orgId } = await client.action(
+        api.passkey.finishRegistration,
+        { challengeId, response, displayName: displayName.trim() || undefined },
       );
       // #region agent log
       fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "243e0c",
-        },
-        body: JSON.stringify({
-          sessionId: "243e0c",
-          hypothesisId: "H3",
-          location: "app/sign-in/page.tsx:register:afterStartReg",
-          message: "Convex startRegistration action resolved",
-          data: { hasChallengeId: !!challengeId },
-          timestamp: Date.now(),
-        }),
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
+        body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "sign-in:register:done", message: "HTTP register success", data: { hasUserId: !!userId, hasOrgId: !!orgId }, timestamp: Date.now() }),
       }).catch(() => {});
       // #endregion
-      const response = await startRegistration({ optionsJSON: options });
-      const { token } = await withConvexActionTimeout(
-        finishReg({
-          challengeId,
-          response,
-          displayName: displayName.trim() || undefined,
-        }),
-        ACTION_TIMEOUT_MS,
-      );
-      setSessionToken(token);
+      setSession({ userId, orgId });
       router.push("/dashboard");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Registration failed";
       // #region agent log
       fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "243e0c",
-        },
-        body: JSON.stringify({
-          sessionId: "243e0c",
-          hypothesisId: "H1-H4",
-          location: "app/sign-in/page.tsx:register:catch",
-          message: "Passkey register flow failed",
-          data: {
-            errorName: e instanceof Error ? e.name : "unknown",
-            errorMessagePrefix: msg.slice(0, 120),
-          },
-          timestamp: Date.now(),
-        }),
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
+        body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "sign-in:register:error", message: msg.slice(0, 120), data: {}, timestamp: Date.now() }),
       }).catch(() => {});
       // #endregion
       setErr(msg);
@@ -111,19 +68,45 @@ export default function SignInPage() {
     setErr(null);
     setBusy("Passkey sign-in…");
     try {
-      const { options, challengeId } = await withConvexActionTimeout(
-        startAuth({}),
-        ACTION_TIMEOUT_MS,
+      const client = new ConvexHttpClient(convexUrl);
+      const { options, challengeId } = await client.action(
+        api.passkey.startAuthentication,
+        {},
       );
       const response = await startAuthentication({ optionsJSON: options });
-      const { token } = await withConvexActionTimeout(
-        finishAuth({ challengeId, response }),
-        ACTION_TIMEOUT_MS,
+      const { userId, orgId } = await client.action(
+        api.passkey.finishAuthentication,
+        { challengeId, response },
       );
-      setSessionToken(token);
+      setSession({ userId, orgId });
       router.push("/dashboard");
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Sign-in failed");
+      const msg = e instanceof Error ? e.message : "Sign-in failed";
+      // No account found for this passkey — automatically register instead
+      if (msg.includes("Unknown credential")) {
+        setBusy("No account found — creating one…");
+        try {
+          const client = new ConvexHttpClient(convexUrl);
+          const { options, challengeId } = await client.action(
+            api.passkey.startRegistration,
+            { displayName: displayName.trim() || undefined },
+          );
+          const response = await startRegistration({ optionsJSON: options });
+          const { userId, orgId } = await client.action(
+            api.passkey.finishRegistration,
+            { challengeId, response, displayName: displayName.trim() || undefined },
+          );
+          setSession({ userId, orgId });
+          router.push("/dashboard");
+          return;
+        } catch (regErr) {
+          setErr(regErr instanceof Error ? regErr.message : "Account creation failed");
+          return;
+        } finally {
+          setBusy("");
+        }
+      }
+      setErr(msg);
     } finally {
       setBusy("");
     }
@@ -138,14 +121,6 @@ export default function SignInPage() {
         </h1>
         <p className="mt-2 text-sm text-on-surface-variant">
           No email or password. Your first visit creates a workspace automatically.
-        </p>
-        <p className="mt-4 rounded-lg border border-outline-variant/30 bg-surface-container-low/80 px-3 py-2 text-xs leading-relaxed text-on-surface-variant">
-          <strong className="font-medium text-on-surface">Local dev:</strong> run{" "}
-          <code className="whitespace-nowrap rounded bg-surface-container-high px-1 py-0.5 font-mono text-[11px] text-on-surface">
-            npx convex dev
-          </code>{" "}
-          in a second terminal so the app can reach your Convex backend (passkeys
-          use Convex actions).
         </p>
         {err ? (
           <p className="mt-4 rounded-lg border border-error/40 bg-error/10 px-3 py-2 text-sm text-error">
