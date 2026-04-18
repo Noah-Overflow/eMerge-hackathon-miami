@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const docs = useQuery(api.dashboard.listDocuments, authArgs);
   const receipts = useQuery(api.dashboard.listInferenceReceipts, authArgs);
   const keys = useQuery(api.apiKeys.listApiKeys, authArgs);
+  const usageDaily = useQuery(api.dashboard.getUsageDaily, authArgs);
   const createKey = useMutation(api.apiKeys.createApiKey);
   const revokeKey = useMutation(api.apiKeys.revokeApiKey);
   const seedDemo = useMutation(api.receipts.createDemoInferenceReceipt);
@@ -81,6 +82,7 @@ export default function DashboardPage() {
       receipts={receipts ?? []}
       docs={docs ?? []}
       keys={keys ?? []}
+      usageDaily={usageDaily}
       newKeyName={newKeyName}
       setNewKeyName={setNewKeyName}
       plaintextKey={plaintextKey}

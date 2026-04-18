@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { UsageDailySnapshot } from "./dashboardUtils";
 import {
   WorkspaceDashboardSidebar,
   type DashboardNavSection,
@@ -13,6 +14,7 @@ type Props = {
   receipts: Doc<"inferenceReceipts">[];
   docs: Doc<"documents">[];
   keys: Doc<"apiKeys">[];
+  usageDaily: UsageDailySnapshot | undefined;
   newKeyName: string;
   setNewKeyName: (v: string) => void;
   plaintextKey: string | null;

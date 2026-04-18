@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { fmt } from "./dashboardUtils";
+import { fmt, type UsageDailySnapshot } from "./dashboardUtils";
+import { WorkspaceDashboardUsageSection } from "./WorkspaceDashboardUsageSection";
 
 type Props = {
   receipts: Doc<"inferenceReceipts">[];
   docs: Doc<"documents">[];
   keys: Doc<"apiKeys">[];
+  usageDaily: UsageDailySnapshot | undefined;
   convexConnected: boolean;
   sessionActive: boolean;
 };
@@ -16,6 +18,7 @@ export function WorkspaceDashboardOverviewPanels({
   receipts,
   docs,
   keys,
+  usageDaily,
   convexConnected,
   sessionActive,
 }: Props) {
@@ -88,74 +91,11 @@ export function WorkspaceDashboardOverviewPanels({
         </div>
       </section>
       <section id="usage" className="grid grid-cols-1 gap-6 md:grid-cols-12">
-        <div className="group flex flex-col justify-between rounded-xl bg-surface-container-low p-6 transition-colors hover:bg-surface-container-high md:col-span-4">
-          <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-outline">
-              Usage at a glance
-            </p>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-display text-3xl font-bold text-primary">{sealed24}</h3>
-                <p className="text-sm text-outline">Seals (24h)</p>
-              </div>
-              <div className="flex items-end justify-between">
-                <div>
-                  <h3 className="font-display text-xl font-bold">{failures}</h3>
-                  <p className="text-xs text-outline">Failures</p>
-                </div>
-                <div className="flex h-8 w-24 items-end gap-1">
-                  {[30, 45, 60, 40, 80, 50].map((h, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 rounded-t-sm bg-primary/30"
-                      style={{ height: `${h}%` }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="font-display text-xl font-bold">—</h3>
-                <p className="text-xs text-outline">Avg seal time</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-outline-variant/5 bg-surface-container-lowest p-6 shadow-sm md:col-span-5">
-          <div className="mb-6 flex items-center justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-outline">
-              Traffic volume
-            </p>
-            <div className="flex gap-3">
-              <div className="flex items-center gap-1.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
-                <span className="text-[10px] text-outline">Seals</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="h-2 w-2 rounded-full bg-secondary-fixed" />
-                <span className="text-[10px] text-outline">API</span>
-              </div>
-            </div>
-          </div>
-          <div className="relative flex h-40 items-end gap-2">
-            <div className="pointer-events-none absolute inset-0 border-b border-l border-outline-variant/10" />
-            {[60, 75, 40, 90, 65].map((h, i) => (
-              <div key={i} className="relative flex h-full flex-1 items-end justify-center px-2">
-                <div
-                  className="absolute bottom-0 w-full rounded-t-sm bg-primary/10"
-                  style={{ height: `${35 + i * 8}%` }}
-                />
-                <div
-                  className="z-10 w-1 rounded-full bg-primary"
-                  style={{ height: `${h}%`, maxHeight: "100%" }}
-                />
-                <div
-                  className="z-10 ml-1 w-1 rounded-full bg-secondary"
-                  style={{ height: `${Math.max(20, h - 15)}%`, maxHeight: "100%" }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <WorkspaceDashboardUsageSection
+          usageDaily={usageDaily}
+          sealed24={sealed24}
+          failures={failures}
+        />
         <div className="relative overflow-hidden rounded-xl bg-primary p-6 text-on-primary md:col-span-3">
           <div className="relative z-10">
             <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-primary-fixed/60">

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { buildActivityRows } from "./dashboardUtils";
+import { buildActivityRows, type UsageDailySnapshot } from "./dashboardUtils";
 import { WorkspaceDashboardActivityPanel } from "./WorkspaceDashboardActivityPanel";
 import { WorkspaceDashboardKeysPanel } from "./WorkspaceDashboardKeysPanel";
 import { WorkspaceDashboardOverviewPanels } from "./WorkspaceDashboardOverviewPanels";
@@ -10,6 +10,7 @@ type Props = {
   receipts: Doc<"inferenceReceipts">[];
   docs: Doc<"documents">[];
   keys: Doc<"apiKeys">[];
+  usageDaily: UsageDailySnapshot | undefined;
   newKeyName: string;
   setNewKeyName: (v: string) => void;
   plaintextKey: string | null;
@@ -45,6 +46,7 @@ export function WorkspaceDashboardMain(props: Props) {
           receipts={props.receipts}
           docs={props.docs}
           keys={props.keys}
+          usageDaily={props.usageDaily}
           convexConnected={props.convexConnected}
           sessionActive={props.sessionActive}
         />

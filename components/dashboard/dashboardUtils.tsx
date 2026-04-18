@@ -61,3 +61,33 @@ export function buildActivityRows(
   rows.sort((a, b) => b.at - a.at);
   return rows;
 }
+
+/** Matches `api.dashboard.getUsageDaily` return shape. */
+export type UsageDailySnapshot = {
+  dayKeys: string[];
+  seals: number[];
+  apiCreated: number[];
+};
+
+export function shortDayLabel(isoKey: string): string {
+  const parts = isoKey.split("-").map(Number);
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+  if (!y || !m || !d || Number.isNaN(y)) return isoKey;
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/** Bar height % for non-zero counts; zeros stay at 0. */
+export function sealBarPercents(counts: number[], minPct = 12): number[] {
+  const max = Math.max(1, ...counts);
+  return counts.map((c) => (c === 0 ? 0 : Math.max(minPct, (c / max) * 100)));
+}
+
+export function sliceLast<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return [...arr];
+  return arr.slice(arr.length - n);
+}
