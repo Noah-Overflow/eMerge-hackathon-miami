@@ -44,13 +44,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(raw) as Session;
         if (parsed.userId && parsed.orgId) {
           setSessionState(parsed);
-          // #region agent log
-          fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
-            body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "app/providers.tsx:hydrate", message: "Session restored from localStorage", data: { hasUserId: !!parsed.userId, hasOrgId: !!parsed.orgId }, timestamp: Date.now() }),
-          }).catch(() => {});
-          // #endregion
         }
       }
     } catch { /* localStorage unavailable */ }
@@ -59,13 +52,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const setSession = useCallback((s: Session) => {
     setSessionState(s);
     try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* */ }
-    // #region agent log
-    fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
-      body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "app/providers.tsx:setSession", message: "Session set after passkey", data: { hasUserId: !!s.userId, hasOrgId: !!s.orgId }, timestamp: Date.now() }),
-    }).catch(() => {});
-    // #endregion
   }, []);
 
   const clearSession = useCallback(() => {

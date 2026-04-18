@@ -49,7 +49,7 @@ export function WorkspaceDashboardActivityPanel({ rows }: Props) {
                     </td>
                     <td className="px-4 py-3 sm:px-6 sm:py-4">{statusPill(r.status)}</td>
                     <td className="px-4 py-3 sm:px-6 sm:py-4">
-                      {r.flowTxId && r.flowTxId !== "0xdemo" ? (
+                      {r.flowTxId && r.flowTxId !== "0xdemo" && !r.flowTxId.startsWith("[") && !r.flowTxId.startsWith("{") ? (
                         <a
                           href={`https://www.flowscan.io/tx/${r.flowTxId}`}
                           target="_blank"

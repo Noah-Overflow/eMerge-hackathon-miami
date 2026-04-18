@@ -23,13 +23,6 @@ export default function SignInPage() {
     setErr(null);
     setBusy("Passkey registration…");
     try {
-      // #region agent log
-      fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
-        body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "sign-in:register:start", message: "HTTP register start", data: {}, timestamp: Date.now() }),
-      }).catch(() => {});
-      // #endregion
       const client = new ConvexHttpClient(convexUrl);
       const { options, challengeId } = await client.action(
         api.passkey.startRegistration,
@@ -40,24 +33,10 @@ export default function SignInPage() {
         api.passkey.finishRegistration,
         { challengeId, response, displayName: displayName.trim() || undefined },
       );
-      // #region agent log
-      fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
-        body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "sign-in:register:done", message: "HTTP register success", data: { hasUserId: !!userId, hasOrgId: !!orgId }, timestamp: Date.now() }),
-      }).catch(() => {});
-      // #endregion
       setSession({ userId, orgId });
       router.push("/dashboard");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Registration failed";
-      // #region agent log
-      fetch("http://127.0.0.1:7271/ingest/5e36ee2f-aa8f-4caf-a340-cf30625fa641", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "243e0c" },
-        body: JSON.stringify({ sessionId: "243e0c", hypothesisId: "NEW-FLOW", location: "sign-in:register:error", message: msg.slice(0, 120), data: {}, timestamp: Date.now() }),
-      }).catch(() => {});
-      // #endregion
       setErr(msg);
     } finally {
       setBusy("");

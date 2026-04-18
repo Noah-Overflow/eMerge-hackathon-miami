@@ -22,10 +22,13 @@ function metadataToJsonCadence(metadata: Record<string, string>) {
   }
 }
 
-function extractFlowTxId(responseData: Record<string, unknown>): string {
-  if (typeof responseData.id === "string") return responseData.id
-  if (typeof responseData.transactionId === "string") return responseData.transactionId
-  if (typeof responseData.jobId === "string") return responseData.jobId
+function extractFlowTxId(responseData: Record<string, unknown> | unknown[]): string {
+  const obj: Record<string, unknown> = Array.isArray(responseData)
+    ? (responseData[0] as Record<string, unknown>) ?? {}
+    : responseData
+  if (typeof obj.id === "string") return obj.id
+  if (typeof obj.transactionId === "string") return obj.transactionId
+  if (typeof obj.jobId === "string") return obj.jobId
   return JSON.stringify(responseData).slice(0, 64)
 }
 
@@ -62,7 +65,7 @@ class FlowService {
       )
     }
 
-    const data = (await response.json()) as Record<string, unknown>
+    const data = (await response.json()) as Record<string, unknown> | unknown[]
     return extractFlowTxId(data)
   }
 
